@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE 3D Perspective Gallery</title>
+    <style>
+        :root { --bg: #030303; --accent: #00f2ff; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
+
+        /* 가짜 스크롤을 위한 긴 컨테이너 */
+        .scroll-container { height: 500vh; }
+
+        /* 고정된 뷰포트 */
+        .scene {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            perspective: 2000px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 회전하는 원통 */
+        .cylinder {
+            position: relative; width: 400px; height: 500px;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* 카드 개별 스타일 */
+        .card {
+            position: absolute; width: 100%; height: 100%;
+            background: rgba(20, 20, 20, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; padding: 30px; box-sizing: border-box;
+            backface-visibility: hidden; display: flex; flex-direction: column; justify-content: flex-end;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .card img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60%;
+            object-fit: cover; opacity: 0.6; mask-image: linear-gradient(to bottom, black, transparent);
+        }
+
+        .card h2 { font-size: 32px; margin: 0; color: var(--accent); }
+        .card p { color: #888; margin-top: 10px; line-height: 1.5; }
+
+        /* 안내 문구 */
+        .scroll-hint {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            color: #444; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="scroll-hint">Scroll to Rotate Gallery</div>
+
+<div class="scroll-container">
+    <div class="scene">
+        <div class="cylinder" id="cylinder">
+            </div>
+    </div>
+</div>
+
+<script>
+    const cylinder = document.getElementById('cylinder');
+    const projects = [
+        { title: "Metaverse UI", desc: "공간 컴퓨팅을 위한 인터랙티브 인터페이스 설계" },
+        { title: "Quantum Analytics", desc: "복잡한 데이터 상관관계를 시각화하는 대시보드" },
+        { title: "Neon Commerce", desc: "차세대 쇼핑 경험을 위한 웹 3D 렌더링 솔루션" },
+        { title: "Cyber Security", desc: "실시간 위협 감지 및 시각적 방어 로그 시스템" },
+        { title: "Cloud Engine", desc: "분산 네트워크 리소스를 관리하는 고성능 콘솔" }
+    ];
+
+    const cardCount = projects.length;
+    const radius = 600; // 원통의 반지름
+
+    // 1. 카드 배치 로직
+    projects.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const angle = (i / cardCount) * Math.PI * 2;
+        
+        // 원형으로 배치 (각도를 라디안으로 계산)
+        const x = Math.sin(angle) * radius;
+        const z = Math.cos(angle) * radius;
+        const rotateY = angle * (180 / Math.PI);
+
+        card.style.transform = `translateX(-50%) translate3d(${x}px, 0, ${z}px) rotateY(${rotateY}deg)`;
+        card.style.left = '50%';
+        
+        card.innerHTML = `
+            <img src="https://picsum.photos/id/${i + 50}/400/500" alt="pj">
+            <h2>${p.title}</h2>
+            <p>${p.desc}</p>
+        `;
+        cylinder.appendChild(card);
+    });
+
+    // 2. 스크롤 연동 회전 로직
+    window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset;
+        const rotation = (scrollTop / (document.body.offsetHeight - window.innerHeight)) * 360;
+        // 원통을 회전시킴
+        cylinder.style.transform = `rotateY(-${rotation}deg)`;
+    });
+</script>
+
+</body>
+</html>
