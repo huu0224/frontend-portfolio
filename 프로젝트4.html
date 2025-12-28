@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Expert Portfolio | Deep-Dive</title>
+    <style>
+        :root { --primary: #3b82f6; --bg: #f3f4f6; --text-dark: #1e293b; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text-dark); }
+        
+        .container { 
+            max-width: 700px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 24px; 
+            position: relative; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            min-height: 600px; 
+        }
+        
+        .page { padding: 40px; width: 100%; box-sizing: border-box; display: none; background: white; border-radius: 24px; }
+        .page.active { display: block; animation: fadeIn 0.4s ease-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 리스트 스타일 */
+        .search-box { width: 100%; padding: 15px; border: 2px solid #eee; border-radius: 12px; margin-bottom: 20px; font-size: 16px; outline: none; box-sizing: border-box; }
+        .project-item { padding: 25px; border: 1px solid #eee; border-radius: 16px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
+        .project-item:hover { border-color: var(--primary); background: #f8fbff; transform: scale(1.01); }
+
+        /* 상세 페이지 요소 */
+        .back-btn { border: none; background: #f1f5f9; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold; }
+        .hero-img { width: 100%; height: 350px; background: #e2e8f0; border-radius: 16px; margin-bottom: 25px; overflow: hidden; }
+        .hero-img img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .section-title { font-size: 20px; font-weight: 700; margin: 35px 0 15px; border-left: 5px solid var(--primary); padding-left: 15px; color: #1e293b; }
+        .content-text { font-size: 16px; line-height: 1.8; color: #475569; margin-bottom: 20px; word-break: keep-all; }
+        
+        .tag-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .tag { background: #eff6ff; color: var(--primary); padding: 5px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+        
+        .point-box { background: #f0f7ff; padding: 25px; border-radius: 16px; border: 1px solid #dbeafe; margin-top: 20px; }
+        
+        .footer-spacer { height: 60px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="listPage" class="page active">
+        <h1 style="letter-spacing: -1.5px; margin-bottom: 10px; font-size: 36px;">Project.archive</h1>
+        <p style="color: #64748b; margin-bottom: 30px;">기술적 문제를 해결하며 성장한 기록들입니다.</p>
+        <input type="text" class="search-box" placeholder="프로젝트명 또는 기술 스택 검색 (예: Next, Socket...)" oninput="search(this.value)">
+        <div id="listContainer"></div>
+    </div>
+
+    <div id="detailPage" class="page">
+        <button class="back-btn" onclick="goHome()">← Back to List</button>
+        <div id="detailBody"></div>
+        <div class="footer-spacer"></div>
+    </div>
+</div>
+
+<script>
+    const projects = [
+        {
+            id: 1,
+            title: "Next.js 커머스 성능 최적화",
+            category: "Web Performance",
+            tags: ["Next.js", "TypeScript", "Lighthouse"],
+            imageUrl: "https://picsum.photos/id/1/800/500",
+            summary: "기존 리액트 SPA의 SEO 문제와 초기 로딩 속도를 개선하기 위한 프로젝트입니다.",
+            problem: "기존 CSR 방식의 한계로 인해 검색 유입이 전무했으며, 대용량 상품 이미지 로딩으로 인해 첫 화면 렌더링(LCP) 지표가 5초 이상 소요되었습니다.",
+            solution: "<b>SSR 및 ISR</b>을 도입하여 상품 페이지의 검색 엔진 최적화를 완료했습니다. 또한 <b>next/image</b> 라이브러리를 통해 이미지 규격을 최적화하고 지연 로딩을 구현하여 불필요한 네트워크 리소스를 절감했습니다.",
+            result: "Lighthouse 성능 점수 40점 → <b>92점</b> 달성 및 구글 검색 결과 1페이지 노출 성공."
+        },
+        {
+            id: 2,
+            title: "실시간 협업 화이트보드",
+            category: "Real-time Interaction",
+            tags: ["Canvas API", "Socket.io", "Redux"],
+            imageUrl: "https://picsum.photos/id/60/800/500",
+            summary: "여러 사용자가 동시에 접속하여 드로잉을 공유하는 협업 툴입니다.",
+            problem: "사용자가 늘어날수록 전송되는 좌표 데이터가 폭증하여 화면이 끊기는 '버벅임' 현상이 발생했습니다.",
+            solution: "<b>Throttling 기법</b>을 적용하여 이벤트 발생 횟수를 최적화하고, 데이터 전송 시 JSON 대신 <b>ArrayBuffer</b> 형식을 사용하여 패킷 크기를 50% 줄였습니다. 렌더링 성능을 위해 <b>Layered Canvas</b> 구조를 채택했습니다.",
+            result: "동시 접속 20명 이상 환경에서 <b>60fps</b>를 안정적으로 유지하며 데이터 비용을 60% 절감했습니다."
+        },
+        {
+            id: 3,
+            title: "핀테크 실시간 자산 대시보드",
+            category: "Data Visualization",
+            tags: ["D3.js", "React Query", "Web Worker"],
+            imageUrl: "https://picsum.photos/id/20/800/500",
+            summary: "수만 개의 자산 데이터를 실시간으로 차트에 반영하는 관리자 시스템입니다.",
+            problem: "수만 건의 금융 데이터를 처리할 때 메인 스레드가 점유되어 브라우저 전체가 멈추는(Freezing) 현상이 발생했습니다.",
+            solution: "데이터 파싱 및 계산 로직을 <b>Web Worker</b>로 분리하여 백그라운드 스레드에서 처리했습니다. 대량의 DOM 생성을 피하기 위해 <b>D3.js의 Canvas 렌더링</b> 방식을 사용했습니다.",
+            result: "데이터 로딩 속도를 기존 대비 <b>70% 단축</b>했으며, 초당 1,000건의 업데이트 상황에서도 부드러운 UI 응답성을 확보했습니다."
+        }
+    ];
+
+    function renderList(data) {
+        document.getElementById('listContainer').innerHTML = data.map(p => `
+            <div class="project-item" onclick="openDetail(${p.id})">
+                <div style="font-size:12px; color:var(--primary); font-weight:bold; margin-bottom:4px;">${p.category}</div>
+                <h3 style="margin:0 0 8px 0">${p.title}</h3>
+                <p style="font-size:14px; color:#666; margin:0; line-height:1.5;">${p.summary}</p>
+            </div>
+        `).join('');
+    }
+
+    function openDetail(id) {
+        const p = projects.find(item => item.id === id);
+        const detailBody = document.getElementById('detailBody');
+        
+        detailBody.innerHTML = `
+            <div class="tag-group">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+            <h1 style="margin:10px 0 25px 0; font-size: 32px; letter-spacing: -1.5px;">${p.title}</h1>
+            
+            <div class="hero-img">
+                <img src="${p.imageUrl}" alt="Project Image">
+            </div>
+
+            <div class="section-title">Background & Problem</div>
+            <p class="content-text">${p.problem}</p>
+
+            <div class="section-title">Technical Solution</div>
+            <p class="content-text">${p.solution}</p>
+
+            <div class="section-title">Key Performance (Outcome)</div>
+            <div class="point-box">
+                <p class="content-text" style="margin:0; font-weight: 600; color:#1e40af;">🎯 ${p.result}</p>
+            </div>
+        `;
+
+        document.getElementById('listPage').classList.remove('active');
+        document.getElementById('detailPage').classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function goHome() {
+        document.getElementById('detailPage').classList.remove('active');
+        document.getElementById('listPage').classList.add('active');
+        window.scrollTo(0, 0);
+    }
+
+    function search(val) {
+        const filtered = projects.filter(p => 
+            p.title.toLowerCase().includes(val.toLowerCase()) || 
+            p.tags.some(t => t.toLowerCase().includes(val.toLowerCase()))
+        );
+        renderList(filtered);
+    }
+
+    renderList(projects);
+</script>
+
+</body>
+</html>
