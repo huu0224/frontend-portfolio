@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Interactive Horizontal Scroll</title>
+    <style>
+        body { margin: 0; background: #050505; color: white; font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
+
+        /* 커스텀 마우스 커서 */
+        .cursor {
+            width: 20px; height: 20px; border: 2px solid #00d2ff; border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 999;
+            transition: transform 0.1s ease-out; transform: translate(-50%, -50%);
+        }
+
+        /* 가로 스크롤을 위한 컨테이너 */
+        .sticky-wrapper { position: sticky; top: 0; width: 300vw; height: 100vh; display: flex; transition: transform 0.1s ease-out; }
+        .section { width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 0 10%; box-sizing: border-box; }
+
+        /* 프로젝트 카드 스타일 */
+        .project-card {
+            width: 80%; max-width: 800px; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px;
+            padding: 50px; backdrop-filter: blur(10px);
+            transition: 0.5s; cursor: none;
+        }
+        .project-card:hover { border-color: #00d2ff; background: rgba(0, 210, 255, 0.05); }
+
+        h2 { font-size: 5rem; margin: 0; font-weight: 900; background: linear-gradient(to right, #00d2ff, #3a7bd5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .desc { font-size: 1.5rem; color: #888; margin-top: 20px; line-height: 1.5; }
+
+        /* 가짜 스크롤을 위한 긴 높이 */
+        .scroll-height { height: 300vh; }
+    </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<div class="scroll-height">
+    <div class="sticky-wrapper" id="horizontal-scroll">
+        <section class="section">
+            <div class="project-card">
+                <h2>01.</h2>
+                <div class="desc">스크롤을 내리면 화면이 가로로 움직입니다.<br>프론트엔드의 부드러운 인터랙션을 구현했습니다.</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="project-card">
+                <h2>02.</h2>
+                <div class="desc">마우스 커서를 따라다니는 효과를 확인하세요.<br>사용자의 시선을 고정시키는 마이크로 인터랙션입니다.</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="project-card">
+                <h2>03.</h2>
+                <div class="desc">복잡한 레이아웃도 성능 저하 없이.<br>최적화된 렌더링을 지향하는 개발자입니다.</div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const scrollWrapper = document.getElementById('horizontal-scroll');
+    const cursor = document.getElementById('cursor');
+
+    // 1. 가로 스크롤 구현 (세로 스크롤 값을 가로 이동값으로 변환)
+    window.addEventListener('scroll', () => {
+        const offset = window.pageYOffset;
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercent = (offset / maxScroll) * 200; // 300vw이므로 200만큼 이동
+        scrollWrapper.style.transform = `translateX(-${scrollPercent}vw)`;
+    });
+
+    // 2. 커스텀 마우스 트래킹
+    window.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+    });
+
+    // 3. 카드 호버 시 커서 변화
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(4)';
+            cursor.style.background = 'rgba(0, 210, 255, 0.2)';
+        });
+        card.addEventListener('mouseleave', () => {
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+            cursor.style.background = 'transparent';
+        });
+    });
+</script>
+
+</body>
+</html>
