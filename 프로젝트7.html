@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Real-time Dashboard</title>
+    <style>
+        :root { --bg: #0a0e17; --card: #141a26; --up: #00ff88; --down: #ff3e3e; --text: #f0f2f5; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; }
+
+        .dashboard {
+            width: 900px; background: var(--card); border-radius: 24px; padding: 30px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .price-main { font-size: 48px; font-weight: 800; letter-spacing: -2px; transition: color 0.3s; }
+        
+        /* 코인 리스트 테이블 */
+        .market-table { width: 100%; border-collapse: collapse; }
+        .market-table th { text-align: left; color: #64748b; font-size: 13px; padding-bottom: 15px; border-bottom: 1px solid #2d3748; }
+        .market-table td { padding: 20px 0; border-bottom: 1px solid #1e293b; font-weight: 600; }
+
+        /* 상승/하락 애니메이션 효과 */
+        .flash-up { color: var(--up); animation: blinkUp 0.5s; }
+        .flash-down { color: var(--down); animation: blinkDown 0.5s; }
+        @keyframes blinkUp { 0% { background: rgba(0,255,136,0.2); } 100% { background: transparent; } }
+        @keyframes blinkDown { 0% { background: rgba(255,62,62,0.2); } 100% { background: transparent; } }
+
+        /* 미니 차트 모형 */
+        .mini-chart { display: flex; align-items: flex-end; gap: 3px; height: 30px; }
+        .bar { width: 4px; background: var(--up); border-radius: 2px; transition: height 0.3s; }
+
+        .btn-trade {
+            background: var(--up); color: #000; border: none; padding: 10px 20px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s;
+        }
+        .btn-trade:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0,255,136,0.4); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <div>
+            <div style="color: #64748b; font-weight: bold; margin-bottom: 5px;">BTC / USDT 실시간 시세</div>
+            <div id="main-price" class="price-main">$ 96,240.50</div>
+        </div>
+        <div style="text-align: right;">
+            <div id="change-percent" style="color: var(--up); font-size: 20px; font-weight: bold;">+2.45% ▲</div>
+            <div style="color: #64748b; font-size: 14px;">24h Volume: 2.4B</div>
+        </div>
+    </div>
+
+    <table class="market-table">
+        <thead>
+            <tr>
+                <th>ASSET</th>
+                <th>PRICE</th>
+                <th>24H CHANGE</th>
+                <th>MARKET TREND</th>
+                <th>ACTION</th>
+            </tr>
+        </thead>
+        <tbody id="market-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const assets = [
+        { name: 'Ethereum', symbol: 'ETH', price: 3420.15, change: 1.2, trend: [10, 20, 15, 30, 25] },
+        { name: 'Solana', symbol: 'SOL', price: 145.80, change: -0.8, trend: [25, 20, 10, 15, 5] },
+        { name: 'Ripple', symbol: 'XRP', price: 0.62, change: 0.5, trend: [5, 10, 8, 12, 15] }
+    ];
+
+    function renderMarket() {
+        const body = document.getElementById('market-body');
+        body.innerHTML = assets.map((a, i) => `
+            <tr id="row-${i}">
+                <td><b style="font-size:18px">${a.name}</b> <span style="color:#64748b; font-size:12px">${a.symbol}</span></td>
+                <td id="price-${i}" style="font-family: monospace;">$ ${a.price.toFixed(2)}</td>
+                <td style="color: ${a.change >= 0 ? 'var(--up)' : 'var(--down)'}">${a.change}%</td>
+                <td>
+                    <div class="mini-chart">
+                        ${a.trend.map(h => `<div class="bar" style="height:${h}px; background:${a.change >= 0 ? 'var(--up)' : 'var(--down)'}"></div>`).join('')}
+                    </div>
+                </td>
+                <td><button class="btn-trade">Trade</button></td>
+            </tr>
+        `).join('');
+    }
+
+    // 실시간 가격 변동 시뮬레이션
+    function simulateMarket() {
+        const mainPriceEl = document.getElementById('main-price');
+        
+        setInterval(() => {
+            // 메인 가격 변동
+            const currentPrice = parseFloat(mainPriceEl.innerText.replace('$ ', '').replace(',', ''));
+            const diff = (Math.random() - 0.5) * 50;
+            const newPrice = currentPrice + diff;
+            
+            mainPriceEl.innerText = `$ ${newPrice.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            mainPriceEl.style.color = diff > 0 ? 'var(--up)' : 'var(--down)';
+
+            // 리스트 가격 변동 및 애니메이션
+            assets.forEach((a, i) => {
+                const priceEl = document.getElementById(`price-${i}`);
+                const rowEl = document.getElementById(`row-${i}`);
+                const randDiff = (Math.random() - 0.5) * 5;
+                a.price += randDiff;
+                priceEl.innerText = `$ ${a.price.toFixed(2)}`;
+                
+                // 시각적 피드백 (Flash 효과)
+                rowEl.classList.remove('flash-up', 'flash-down');
+                void rowEl.offsetWidth; // 리플로우 강제 발생으로 애니메이션 재시작
+                rowEl.classList.add(randDiff > 0 ? 'flash-up' : 'flash-down');
+            });
+        }, 2000);
+    }
+
+    renderMarket();
+    simulateMarket();
+</script>
+
+</body>
+</html>
