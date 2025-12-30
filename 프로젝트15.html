@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE High-Tech Glitch</title>
+    <style>
+        :root { --primary: #00f2ff; --accent: #ff00c1; }
+        body { margin: 0; background: #050505; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+
+        /* 글리치 텍스트 스타일 */
+        .glitch-wrapper { position: relative; }
+        
+        .glitch {
+            font-size: 5rem; font-weight: 900; text-transform: uppercase;
+            position: relative; display: inline-block;
+            text-shadow: 0.05em 0 0 var(--primary), -0.05em -0.025em 0 var(--accent);
+            animation: glitch-anim 1s infinite linear alternate-reverse;
+        }
+
+        /* 글리치의 층(Layer) 생성 */
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505;
+        }
+
+        /* 빨간색 잔상 레이어 */
+        .glitch::before {
+            left: 2px; text-shadow: -2px 0 #ff00c1;
+            clip-path: inset(45% 0 44% 0);
+            animation: glitch-top 1.5s infinite linear alternate-reverse;
+        }
+
+        /* 파란색 잔상 레이어 */
+        .glitch::after {
+            left: -2px; text-shadow: -2px 0 #00f2ff;
+            clip-path: inset(10% 0 85% 0);
+            animation: glitch-bottom 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes glitch-top {
+            0% { clip-path: inset(10% 0 80% 0); }
+            100% { clip-path: inset(50% 0 10% 0); }
+        }
+
+        @keyframes glitch-bottom {
+            0% { clip-path: inset(80% 0 5% 0); }
+            100% { clip-path: inset(20% 0 60% 0); }
+        }
+
+        /* 마우스 호버 시 화면 전체 흔들림 */
+        body:active { animation: shake 0.1s infinite; }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -2px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(1deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="glitch-wrapper">
+    <div class="glitch" data-text="ERROR:SYSTEM" id="target">ERROR:SYSTEM</div>
+    <p style="text-align: center; color: var(--primary); letter-spacing: 5px; margin-top: 20px;">
+        DECODING PORTFOLIO...
+    </p>
+</div>
+
+<script>
+    // 마우스 위치에 따라 글리치의 강도를 조절하는 인터랙션
+    const target = document.getElementById('target');
+    window.addEventListener('mousemove', (e) => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 10;
+        const y = (e.clientY / window.innerHeight - 0.5) * 10;
+        target.style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+    // 클릭 시 텍스트 변경 효과
+    target.addEventListener('click', () => {
+        const texts = ["ACCESS", "GRANTED", "FRONTEND", "DEVELOPER"];
+        const randomText = texts[Math.floor(Math.random() * texts.length)];
+        target.innerText = randomText;
+        target.setAttribute('data-text', randomText);
+    });
+</script>
+
+</body>
+</html>
