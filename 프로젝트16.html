@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Mathematical Art</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Pretendard', sans-serif; }
+        canvas { display: block; filter: contrast(1.2) brightness(1.2); }
+        .ui {
+            position: absolute; top: 30px; left: 30px; color: white;
+            pointer-events: none; text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .ui h1 { margin: 0; font-size: 2rem; letter-spacing: -1px; }
+        .ui p { color: #00d2ff; font-weight: bold; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="ui">
+    <h1>Mathematical Synergy</h1>
+    <p>마우스를 움직여 기하학적 대칭 패턴을 생성하세요</p>
+</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let angle = 0;
+    const slices = 12; // 대칭 축 개수
+    const mouse = { x: 0, y: 0 };
+    let hue = 0;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function draw() {
+        // 잔상 효과를 위한 반투명 덮개
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+
+        for (let i = 0; i < slices; i++) {
+            ctx.rotate((Math.PI * 2) / slices);
+            
+            // 대칭 그리기
+            drawPattern();
+            ctx.save();
+            ctx.scale(1, -1);
+            drawPattern();
+            ctx.restore();
+        }
+        ctx.restore();
+
+        hue += 1;
+        requestAnimationFrame(draw);
+    }
+
+    function drawPattern() {
+        const x = mouse.x - canvas.width / 2;
+        const y = mouse.y - canvas.height / 2;
+        const dist = Math.sqrt(x * x + y * y);
+
+        ctx.beginPath();
+        ctx.arc(dist, 0, dist * 0.1, 0, Math.PI * 2);
+        ctx.strokeStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = `hsla(${hue + 100}, 80%, 50%, 0.3)`;
+        ctx.fill();
+    }
+
+    resize();
+    draw();
+</script>
+</body>
+</html>
