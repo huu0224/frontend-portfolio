@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Swarm Intelligence</title>
+    <style>
+        body { margin: 0; background: #020617; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { display: block; }
+        .ui { position: absolute; top: 30px; color: #94a3b8; font-family: 'JetBrains Mono', monospace; letter-spacing: 3px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="ui">ALGORITHM: BOIDS FLOCKING</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let boids = [];
+
+    class Boid {
+        constructor() {
+            this.position = { x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight };
+            this.velocity = { x: (Math.random() - 0.5) * 4, y: (Math.random() - 0.5) * 4 };
+            this.acceleration = { x: 0, y: 0 };
+            this.maxSpeed = 3;
+            this.maxForce = 0.05;
+        }
+
+        // 1. 분리: 주변 개체와 너무 가까워지지 않게
+        separate(boids) {
+            let perception = 25;
+            let steering = { x: 0, y: 0 };
+            let total = 0;
+            for (let other of boids) {
+                let d = Math.hypot(this.position.x - other.position.x, this.position.y - other.position.y);
+                if (other !== this && d < perception) {
+                    let diff = { x: this.position.x - other.position.x, y: this.position.y - other.position.y };
+                    diff.x /= d; diff.y /= d;
+                    steering.x += diff.x; steering.y += diff.y;
+                    total++;
+                }
+            }
+            if (total > 0) {
+                steering.x /= total; steering.y /= total;
+                return this.applySteer(steering);
+            }
+            return { x: 0, y: 0 };
+        }
+
+        applySteer(target) {
+            let mag = Math.hypot(target.x, target.y);
+            target.x = (target.x / mag) * this.maxSpeed - this.velocity.x;
+            target.y = (target.y / mag) * this.maxSpeed - this.velocity.y;
+            return target;
+        }
+
+        update() {
+            this.position.x += this.velocity.x;
+            this.position.y += this.velocity.y;
+            this.velocity.x += this.acceleration.x;
+            this.velocity.y += this.acceleration.y;
+            // 화면 경계 처리
+            if (this.position.x > window.innerWidth) this.position.x = 0;
+            if (this.position.x < 0) this.position.x = window.innerWidth;
+            if (this.position.y > window.innerHeight) this.position.y = 0;
+            if (this.position.y < 0) this.position.y = window.innerHeight;
+            this.acceleration = { x: 0, y: 0 };
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.position.x, this.position.y);
+            ctx.rotate(Math.atan2(this.velocity.y, this.velocity.x));
+            ctx.beginPath();
+            ctx.moveTo(8, 0); ctx.lineTo(-4, 4); ctx.lineTo(-4, -4);
+            ctx.fillStyle = "#38bdf8";
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        for (let i = 0; i < 100; i++) boids.push(new Boid());
+    }
+
+    function animate() {
+        ctx.fillStyle = "rgba(2, 6, 23, 0.2)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        for (let boid of boids) {
+            let sep = boid.separate(boids);
+            boid.acceleration.x += sep.x;
+            boid.acceleration.y += sep.y;
+            boid.update();
+            boid.draw();
+        }
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+</script>
+</body>
+</html>
