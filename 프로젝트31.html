@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Bio-Logic Art</title>
+    <style>
+        body { margin: 0; background: #050505; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { display: block; filter: drop-shadow(0 0 15px #00ff88); }
+        .ui { position: absolute; top: 30px; color: #00ff88; font-family: monospace; letter-spacing: 3px; pointer-events: none; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<div class="ui">ALGORITHM: DIFFERENTIAL GROWTH</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let nodes = [];
+    const maxNodes = 400;
+
+    class Node {
+        constructor(x, y) {
+            this.x = x; this.y = y;
+            this.vx = 0; this.vy = 0;
+        }
+    }
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        nodes = [];
+        // 초기에 작은 원형으로 노드 배치
+        for (let i = 0; i < 10; i++) {
+            const a = (i / 10) * Math.PI * 2;
+            nodes.push(new Node(canvas.width/2 + Math.cos(a)*10, canvas.height/2 + Math.sin(a)*10));
+        }
+    }
+
+    function update() {
+        // 1. 노드 간 반발력 및 결합력 계산
+        for (let i = 0; i < nodes.length; i++) {
+            let n1 = nodes[i];
+            
+            // 근접 노드 밀어내기
+            for (let j = 0; j < nodes.length; j++) {
+                if (i === j) continue;
+                let n2 = nodes[j];
+                let dx = n1.x - n2.x;
+                let dy = n1.y - n2.y;
+                let d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 20) {
+                    let f = (20 - d) * 0.05;
+                    n1.vx += (dx/d) * f;
+                    n1.vy += (dy/d) * f;
+                }
+            }
+
+            // 연결된 노드 당기기 (Spring)
+            let prev = nodes[(i - 1 + nodes.length) % nodes.length];
+            let next = nodes[(i + 1) % nodes.length];
+            [prev, next].forEach(target => {
+                let dx = target.x - n1.x;
+                let dy = target.y - n1.y;
+                let d = Math.sqrt(dx*dx + dy*dy);
+                if (d > 10) {
+                    let f = (d - 10) * 0.02;
+                    n1.vx += (dx/d) * f;
+                    n1.vy += (dy/d) * f;
+                }
+            });
+        }
+
+        // 2. 노드 분열 (성장)
+        if (nodes.length < maxNodes && Math.random() > 0.8) {
+            let idx = Math.floor(Math.random() * nodes.length);
+            let n1 = nodes[idx];
+            let n2 = nodes[(idx + 1) % nodes.length];
+            let newNode = new Node((n1.x + n2.x)/2, (n1.y + n2.y)/2);
+            nodes.splice(idx + 1, 0, newNode);
+        }
+
+        // 3. 위치 업데이트
+        nodes.forEach(n => {
+            n.x += n.vx; n.y += n.vy;
+            n.vx *= 0.9; n.vy *= 0.9;
+        });
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 2;
+        ctx.moveTo(nodes[0].x, nodes[0].y);
+        for (let i = 1; i < nodes.length; i++) {
+            ctx.lineTo(nodes[i].x, nodes[i].y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        update();
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
