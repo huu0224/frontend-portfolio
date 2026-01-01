@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Fractal Nature</title>
+    <style>
+        body { margin: 0; background: #050505; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { display: block; filter: drop-shadow(0 0 10px rgba(0, 255, 136, 0.5)); }
+        .ui { position: absolute; top: 30px; color: #00ff88; font-family: monospace; letter-spacing: 2px; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+<div class="ui">RECURSIVE FRACTAL ENGINE v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let angle = 0;
+
+    window.addEventListener('mousemove', (e) => {
+        // 마우스 X 위치에 따라 나뭇가지가 벌어지는 각도 조절
+        angle = (e.clientX / window.innerWidth) * Math.PI / 2;
+    });
+
+    function drawBranch(len) {
+        // 나뭇가지 그리기
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -len);
+        ctx.stroke();
+
+        // 나뭇가지 끝으로 이동
+        ctx.translate(0, -len);
+
+        // 가지가 너무 짧아지면 중단 (재귀 탈출 조건)
+        if (len > 4) {
+            ctx.save();
+            ctx.rotate(angle);
+            drawBranch(len * 0.75); // 오른쪽 가지 재귀 호출
+            ctx.restore();
+
+            ctx.save();
+            ctx.rotate(-angle);
+            drawBranch(len * 0.75); // 왼쪽 가지 재귀 호출
+            ctx.restore();
+        }
+    }
+
+    function animate() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 2;
+
+        ctx.translate(canvas.width / 2, canvas.height); // 화면 아래 중앙으로 이동
+        drawBranch(canvas.height / 4); // 초기 나무 크기 설정
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+</body>
+</html>
