@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Mathematical 3D Render</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: drop-shadow(0 0 10px #3b82f6); }
+        .label {
+            position: absolute; bottom: 50px; color: #3b82f6;
+            font-family: monospace; letter-spacing: 2px; pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="label">3D PROJECTION ENGINE v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let A = 0, B = 0; // 회전 각도
+
+    function resize() {
+        canvas.width = 600;
+        canvas.height = 600;
+    }
+
+    function draw() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'; // 잔상 효과
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const R1 = 80;  // 안쪽 반지름
+        const R2 = 150; // 바깥쪽 반지름
+        const K1 = 400; // 관찰자 거리 (원근감)
+
+        // 도넛을 구성하는 점들을 수학적으로 계산
+        for (let theta = 0; theta < 6.28; theta += 0.15) {
+            for (let phi = 0; phi < 6.28; phi += 0.07) {
+                
+                let cosA = Math.cos(A), sinA = Math.sin(A);
+                let cosB = Math.cos(B), sinB = Math.sin(B);
+                let cosTheta = Math.cos(theta), sinTheta = Math.sin(theta);
+                let cosPhi = Math.cos(phi), sinPhi = Math.sin(phi);
+
+                // 3D 좌표 계산
+                let circleX = R2 + R1 * cosTheta;
+                let circleY = R1 * sinTheta;
+
+                let x = circleX * (cosB * cosPhi + sinA * sinB * sinPhi) - circleY * cosA * sinB;
+                let y = circleX * (sinB * cosPhi - sinA * cosB * sinPhi) + circleY * cosA * cosB;
+                let z = K1 + cosA * circleX * sinPhi + circleY * sinA;
+                let ooz = 1 / z; // 원근 투영 계수
+
+                // 2D 화면 좌표로 변환
+                let xp = canvas.width / 2 + K1 * ooz * x;
+                let yp = canvas.height / 2 - K1 * ooz * y;
+
+                // 광도(Luminance) 계산 (간단한 조명 효과)
+                let L = cosPhi * cosTheta * sinB - cosA * cosTheta * sinPhi - sinA * sinTheta + cosB * (cosA * sinTheta - cosTheta * sinA * sinPhi);
+                
+                if (L > 0) {
+                    ctx.fillStyle = `rgba(59, 130, 246, ${L})`;
+                    ctx.beginPath();
+                    ctx.arc(xp, yp, L * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        A += 0.03;
+        B += 0.02;
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    draw();
+</script>
+</body>
+</html>
