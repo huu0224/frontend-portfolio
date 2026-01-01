@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Liquid Distortion</title>
+    <style>
+        :root { --primary: #00d2ff; }
+        body { margin: 0; background: #050505; color: white; overflow: hidden; font-family: 'Inter', sans-serif; }
+
+        /* 왜곡이 적용될 컨테이너 */
+        .content {
+            height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            filter: url(#liquid-filter); /* SVG 필터 연결 */
+            text-align: center;
+        }
+
+        h1 { font-size: 8vw; margin: 0; line-height: 1; letter-spacing: -2px; }
+        p { font-size: 1.5vw; color: var(--primary); font-weight: bold; margin-top: 20px; }
+
+        /* 배경 장식 */
+        .bg-circle {
+            position: absolute; width: 400px; height: 400px;
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            border-radius: 50%; filter: blur(80px); opacity: 0.2;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+<svg style="position: absolute; width: 0; height: 0;">
+    <filter id="liquid-filter">
+        <feTurbulence id="turbulence" type="fractalNoise" baseFrequency="0.01" numOctaves="3" result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="50" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+</svg>
+
+<div class="bg-circle" id="circle"></div>
+
+<div class="content">
+    <h1>LIQUID LOGIC</h1>
+    <p>브라우저 GPU 가속을 이용한 실시간 액체 왜곡 인터랙션</p>
+</div>
+
+<script>
+    const turbulence = document.getElementById('turbulence');
+    const circle = document.getElementById('circle');
+    let frame = 0;
+
+    // 마우스 위치에 따른 배경 원 이동
+    window.addEventListener('mousemove', (e) => {
+        circle.style.left = e.clientX - 200 + 'px';
+        circle.style.top = e.clientY - 200 + 'px';
+        
+        // 마우스 속도에 반응하여 왜곡 강도 조절 (옵션)
+        const speed = Math.abs(e.movementX) + Math.abs(e.movementY);
+        const scale = 20 + speed * 0.5;
+        document.querySelector('feDisplacementMap').setAttribute('scale', scale);
+    });
+
+    // 필터의 주파수를 미세하게 변화시켜 흐르는 느낌 구현
+    function animate() {
+        frame += 0.01;
+        // baseFrequency 값을 변화시켜 노이즈가 살아 움직이게 함
+        const bf = 0.01 + Math.sin(frame) * 0.002;
+        turbulence.setAttribute('baseFrequency', bf);
+        
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+
+</body>
+</html>
