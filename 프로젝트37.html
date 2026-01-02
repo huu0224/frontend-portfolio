@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Masterpiece: Structural Balance</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        canvas { filter: saturate(1.2) contrast(1.1); }
+        .ui { position: absolute; top: 40px; color: #10b981; font-family: 'Inter', sans-serif; letter-spacing: 5px; pointer-events: none; opacity: 0.5; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="ui">Optimization: Voronoi Relaxation</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    const numPoints = 40;
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        points = [];
+        for (let i = 0; i < numPoints; i++) {
+            points.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                hue: Math.random() * 360
+            });
+        }
+    }
+
+    function draw() {
+        // 성능을 위해 픽셀 단위 연산 대신 캔버스 드로잉 기법 활용
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Lloyd's Algorithm: 점들을 영역의 중심(이론적)으로 미세하게 이동
+        points.forEach(p => {
+            // 마우스 영향력 추가
+            if (window.mouseX) {
+                p.x += (window.mouseX - p.x) * 0.01;
+                p.y += (window.mouseY - p.y) * 0.01;
+            }
+            // 자연스러운 이완(Relaxation)을 위한 미세 진동
+            p.x += (Math.random() - 0.5) * 2;
+            p.y += (Math.random() - 0.5) * 2;
+        });
+
+        // 2. 보로노이 영역 시각화 (간소화된 델로네 삼각측량 기반 연결)
+        points.forEach((p1, i) => {
+            ctx.beginPath();
+            ctx.strokeStyle = `hsla(${p1.hue}, 70%, 50%, 0.3)`;
+            points.forEach((p2, j) => {
+                const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                if (dist < 150) {
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                }
+            });
+            ctx.stroke();
+            
+            ctx.fillStyle = `hsl(${p1.hue}, 70%, 50%)`;
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('mousemove', e => {
+        window.mouseX = e.clientX;
+        window.mouseY = e.clientY;
+    });
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
