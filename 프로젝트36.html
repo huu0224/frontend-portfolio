@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Masterpiece: Emergent Logic</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        canvas { border: 1px solid #333; image-rendering: pixelated; }
+        .ui { position: absolute; top: 30px; color: #f59e0b; font-family: 'JetBrains Mono', monospace; letter-spacing: 3px; pointer-events: none; opacity: 0.6; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="ui">
+    <h2 style="margin: 0;">ALGORITHM: LANGTON'S ANT</h2>
+    <span>Simple Rules, Complex Emergence</span>
+</div>
+<canvas id="antCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('antCanvas');
+    const ctx = canvas.getContext('2d');
+    const res = 4; // 격자 크기
+    let cols, rows, grid, ant;
+
+    function init() {
+        canvas.width = 600;
+        canvas.height = 600;
+        cols = canvas.width / res;
+        rows = canvas.height / res;
+        
+        // 0: 흰색, 1: 검은색
+        grid = new Array(cols).fill(null).map(() => new Array(rows).fill(0));
+        
+        // 개미 상태 (x, y, 방향: 0-북, 1-동, 2-남, 3-서)
+        ant = { x: Math.floor(cols/2), y: Math.floor(rows/2), dir: 0 };
+        
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function step() {
+        // 성능을 위해 한 프레임당 여러 단계 진행
+        for (let s = 0; s < 100; s++) {
+            let state = grid[ant.x][ant.y];
+
+            if (state === 0) { // 흰색 칸이면
+                ant.dir = (ant.dir + 1) % 4; // 오른쪽 회전
+                grid[ant.x][ant.y] = 1;      // 검은색으로 반전
+            } else { // 검은색 칸이면
+                ant.dir = (ant.dir + 3) % 4; // 왼쪽 회전
+                grid[ant.x][ant.y] = 0;      // 흰색으로 반전
+            }
+
+            // 색상 칠하기
+            ctx.fillStyle = grid[ant.x][ant.y] === 1 ? '#f59e0b' : '#000';
+            ctx.fillRect(ant.x * res, ant.y * res, res, res);
+
+            // 이동
+            if (ant.dir === 0) ant.y--;
+            else if (ant.dir === 1) ant.x++;
+            else if (ant.dir === 2) ant.y++;
+            else if (ant.dir === 3) ant.x--;
+
+            // 경계 처리
+            if (ant.x >= cols) ant.x = 0;
+            if (ant.x < 0) ant.x = cols - 1;
+            if (ant.y >= rows) ant.y = 0;
+            if (ant.y < 0) ant.y = rows - 1;
+        }
+        requestAnimationFrame(step);
+    }
+
+    init();
+    step();
+</script>
+</body>
+</html>
