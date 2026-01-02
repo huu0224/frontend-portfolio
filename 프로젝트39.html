@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Masterpiece: Wave Resonance</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: contrast(1.5) brightness(1.2) hue-rotate(-20deg); }
+        .ui { position: absolute; top: 40px; color: #00e5ff; font-family: 'Inter', sans-serif; letter-spacing: 5px; pointer-events: none; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<div class="ui">PHYSICS: WAVE INTERFERENCE v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const res = 4; // 그리드 해상도
+    let cols, rows, current = [], previous = [];
+
+    function init() {
+        canvas.width = window.innerWidth / 2;
+        canvas.height = window.innerHeight / 2;
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        cols = canvas.width;
+        rows = canvas.height;
+        current = new Array(cols * rows).fill(0);
+        previous = new Array(cols * rows).fill(0);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        const x = Math.floor(e.clientX / (window.innerWidth / canvas.width));
+        const y = Math.floor(e.clientY / (window.innerHeight / canvas.height));
+        if (x > 0 && x < cols && y > 0 && y < rows) {
+            current[x + y * cols] = 255;
+        }
+    });
+
+    function draw() {
+        const img = ctx.createImageData(cols, rows);
+        for (let i = 1; i < cols - 1; i++) {
+            for (let j = 1; j < rows - 1; j++) {
+                const index = i + j * cols;
+                // 파동 방정식: 주변 4개 셀의 평균값에서 현재 값을 빼고 감쇄 적용
+                current[index] = (
+                    previous[index - 1] + previous[index + 1] +
+                    previous[index - cols] + previous[index + cols]
+                ) / 2 - current[index];
+                current[index] *= 0.98; // 감쇄(Damping)
+
+                const val = current[index] + 128;
+                const p = index * 4;
+                img.data[p] = val * 0.2;     // R
+                img.data[p + 1] = val * 0.6; // G
+                img.data[p + 2] = val;       // B
+                img.data[p + 3] = 255;
+            }
+        }
+        ctx.putImageData(img, 0, 0);
+        [previous, current] = [current, previous]; // 상태 교체
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
