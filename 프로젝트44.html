@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Finale: Polygon Mesh</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: contrast(1.2) brightness(1.1); }
+        .ui { position: absolute; top: 40px; color: #6366f1; font-family: 'Inter', sans-serif; letter-spacing: 5px; pointer-events: none; opacity: 0.4; }
+    </style>
+</head>
+<body>
+
+<div class="ui">FINALITY: GEOMETRIC SHADING v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    const gap = 60;
+    const mouse = { x: 0, y: 0 };
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        points = [];
+        for (let y = 0; y < canvas.height + gap; y += gap) {
+            let row = [];
+            for (let x = 0; x < canvas.width + gap; x += gap) {
+                row.push({
+                    x: x + (Math.random() - 0.5) * gap * 0.8,
+                    y: y + (Math.random() - 0.5) * gap * 0.8,
+                    baseX: x, baseY: y
+                });
+            }
+            points.push(row);
+        }
+    }
+
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let y = 0; y < points.length - 1; y++) {
+            for (let x = 0; x < points[y].length - 1; x++) {
+                const p1 = points[y][x];
+                const p2 = points[y][x+1];
+                const p3 = points[y+1][x];
+
+                // 마우스와의 거리에 따른 명암 계산 (Fake Lighting)
+                const centerX = (p1.x + p2.x + p3.x) / 3;
+                const centerY = (p1.y + p2.y + p3.y) / 3;
+                const dist = Math.hypot(mouse.x - centerX, mouse.y - centerY);
+                const light = Math.max(0, 1 - dist / 400);
+                
+                ctx.fillStyle = `rgba(99, 102, 241, ${0.1 + light * 0.5})`;
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineTo(p3.x, p3.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.05 + light * 0.1})`;
+                ctx.stroke();
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
