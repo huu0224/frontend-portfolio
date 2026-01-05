@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Finale: Inverse Kinematics</title>
+    <style>
+        body { margin: 0; background: #050505; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: drop-shadow(0 0 10px #00ff88); }
+        .ui { position: absolute; top: 40px; color: #00ff88; font-family: 'JetBrains Mono', monospace; letter-spacing: 5px; pointer-events: none; opacity: 0.4; }
+    </style>
+</head>
+<body>
+
+<div class="ui">FINALITY: INVERSE KINEMATICS v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let segments = [];
+    const numSegments = 20;
+    const segLength = 20;
+    const mouse = { x: 0, y: 0 };
+
+    class Segment {
+        constructor(x, y, len, angle) {
+            this.x = x; this.y = y;
+            this.len = len; this.angle = angle;
+            this.bx = 0; this.by = 0; // 끝점 (Base)
+            this.calculateBase();
+        }
+        calculateBase() {
+            this.bx = this.x + Math.cos(this.angle) * this.len;
+            this.by = this.y + Math.sin(this.angle) * this.len;
+        }
+        follow(tx, ty) {
+            const dx = tx - this.x;
+            const dy = ty - this.y;
+            this.angle = Math.atan2(dy, dx);
+            this.x = tx - Math.cos(this.angle) * this.len;
+            this.y = ty - Math.sin(this.angle) * this.len;
+        }
+        draw() {
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.bx, this.by);
+            ctx.stroke();
+        }
+    }
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        segments = [];
+        for (let i = 0; i < numSegments; i++) {
+            segments.push(new Segment(0, 0, segLength, 0));
+        }
+    }
+
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    });
+
+    function draw() {
+        ctx.fillStyle = '#050505';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 첫 번째 마디가 마우스를 추적
+        segments[0].follow(mouse.x, mouse.y);
+        segments[0].calculateBase();
+
+        // 나머지 마디들이 앞선 마디를 추적 (역기구학 체인)
+        for (let i = 1; i < numSegments; i++) {
+            segments[i].follow(segments[i - 1].x, segments[i - 1].y);
+            segments[i].calculateBase();
+        }
+
+        segments.forEach(s => s.draw());
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
