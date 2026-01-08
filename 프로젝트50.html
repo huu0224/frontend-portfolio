@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Finale: Wave Function Collapse</title>
+    <style>
+        body { margin: 0; background: #0f172a; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { border: 2px solid #334155; image-rendering: pixelated; }
+        .ui { position: absolute; top: 40px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; letter-spacing: 5px; pointer-events: none; opacity: 0.6; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="ui">
+    ALGORITHM: WAVE FUNCTION COLLAPSE<br>
+    <span style="font-size: 0.8em; letter-spacing: 2px;">PROCEDURAL LOGIC ENGINE</span>
+</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 20; // 타일 크기
+    let cols, rows, grid;
+
+    // 타일 정의 (단순화: 연결 방향에 따른 규칙)
+    function init() {
+        canvas.width = 400; canvas.height = 400;
+        cols = canvas.width / size;
+        rows = canvas.height / size;
+        grid = new Array(cols * rows).fill(null);
+    }
+
+    function solve() {
+        // 엔트로피가 가장 낮은(아직 결정되지 않은) 칸 중 하나를 선택
+        let options = [];
+        for (let i = 0; i < grid.length; i++) {
+            if (grid[i] === null) options.push(i);
+        }
+
+        if (options.length === 0) return; // 모든 칸이 결정됨
+
+        // 랜덤하게 한 칸을 골라 상태를 붕괴(Collapse)시킴
+        let pick = options[Math.floor(Math.random() * options.length)];
+        grid[pick] = Math.floor(Math.random() * 2); // 0 또는 1 상태
+
+        // 시각화
+        const x = (pick % cols) * size;
+        const y = Math.floor(pick / cols) * size;
+        
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        if (grid[pick] === 1) {
+            ctx.beginPath();
+            ctx.moveTo(x + size/2, y); ctx.lineTo(x + size/2, y + size);
+            ctx.moveTo(x, y + size/2); ctx.lineTo(x + size, y + size/2);
+            ctx.stroke();
+        }
+
+        requestAnimationFrame(solve);
+    }
+
+    init();
+    solve();
+</script>
+</body>
+</html>
