@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Finale: Morphogenesis</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { image-rendering: pixelated; border: 1px solid #333; cursor: crosshair; }
+        .ui { position: absolute; top: 40px; color: #fff; font-family: monospace; letter-spacing: 5px; pointer-events: none; opacity: 0.3; }
+    </style>
+</head>
+<body>
+
+<div class="ui">ALGORITHM: REACTION-DIFFUSION SIMULATION</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 150; // 연산 효율을 위한 그리드 크기
+    canvas.width = size; canvas.height = size;
+    canvas.style.width = '450px'; canvas.style.height = '450px';
+
+    let grid = [], next = [];
+    const dA = 1.0, dB = 0.5, feed = 0.055, k = 0.062;
+
+    for (let x = 0; x < size; x++) {
+        grid[x] = []; next[x] = [];
+        for (let y = 0; y < size; y++) {
+            grid[x][y] = { a: 1, b: 0 };
+            next[x][y] = { a: 1, b: 0 };
+        }
+    }
+
+    // 초기 씨앗
+    for (let i = 70; i < 80; i++) for (let j = 70; j < 80; j++) grid[i][j].b = 1;
+
+    function laplace(x, y, prop) {
+        let sum = 0;
+        sum += grid[x][y][prop] * -1;
+        sum += grid[x-1][y][prop] * 0.2 + grid[x+1][y][prop] * 0.2;
+        sum += grid[x][y-1][prop] * 0.2 + grid[x][y+1][prop] * 0.2;
+        sum += grid[x-1][y-1][prop] * 0.05 + grid[x+1][y-1][prop] * 0.05;
+        sum += grid[x-1][y+1][prop] * 0.05 + grid[x+1][y+1][prop] * 0.05;
+        return sum;
+    }
+
+    function draw() {
+        let img = ctx.createImageData(size, size);
+        for (let x = 1; x < size - 1; x++) {
+            for (let y = 1; y < size - 1; y++) {
+                let a = grid[x][y].a, b = grid[x][y].b;
+                next[x][y].a = a + (dA * laplace(x, y, 'a') - a*b*b + feed*(1-a));
+                next[x][y].b = b + (dB * laplace(x, y, 'b') + a*b*b - (k+feed)*b);
+                
+                let val = Math.floor((next[x][y].a - next[x][y].b) * 255);
+                let i = (x + y * size) * 4;
+                img.data[i] = val; img.data[i+1] = val; img.data[i+2] = val; img.data[i+3] = 255;
+            }
+        }
+        ctx.putImageData(img, 0, 0);
+        let temp = grid; grid = next; next = temp;
+        requestAnimationFrame(draw);
+    }
+    draw();
+</script>
+</body>
+</html>
