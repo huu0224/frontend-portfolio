@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Finale: The 70th Masterpiece</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: contrast(1.2) brightness(1.1); }
+        .ui { position: absolute; top: 40px; color: #0ea5e9; font-family: 'JetBrains Mono', monospace; letter-spacing: 5px; pointer-events: none; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<div class="ui">FINALITY: GEOMETRIC TOPOLOGY v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    const numPoints = 60;
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        points = Array.from({ length: numPoints }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            targetX: 0, targetY: 0
+        }));
+    }
+
+    function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        points.forEach((p1, i) => {
+            p1.x += p1.vx; p1.y += p1.vy;
+            if (p1.x < 0 || p1.x > canvas.width) p1.vx *= -1;
+            if (p1.y < 0 || p1.y > canvas.height) p1.vy *= -1;
+
+            // 근접한 점들끼리 선 연결 (Delaunay 근사)
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(14, 165, 233, 0.15)`;
+            points.forEach((p2, j) => {
+                if (i === j) return;
+                const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                if (dist < 200) {
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                }
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = '#0ea5e9';
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init(); draw();
+</script>
+</body>
+</html>
