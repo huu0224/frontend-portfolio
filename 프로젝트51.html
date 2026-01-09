@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FE Masterpiece: Voronoi Balance</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { filter: saturate(1.2) contrast(1.1); }
+        .ui { position: absolute; top: 40px; color: #10b981; font-family: 'Inter', sans-serif; letter-spacing: 5px; pointer-events: none; opacity: 0.5; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="ui">ALGORITHM: VORONOI RELAXATION v1.0</div>
+<canvas id="canvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let points = [];
+    const numPoints = 50;
+
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        points = Array.from({ length: numPoints }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            hue: Math.random() * 360
+        }));
+    }
+
+    function draw() {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 델로네/보로노이 근사 시각화 (선 연결)
+        points.forEach((p1, i) => {
+            p1.x += p1.vx; p1.y += p1.vy;
+            if (p1.x < 0 || p1.x > canvas.width) p1.vx *= -1;
+            if (p1.y < 0 || p1.y > canvas.height) p1.vy *= -1;
+
+            ctx.beginPath();
+            ctx.strokeStyle = `hsla(${p1.hue}, 70%, 50%, 0.2)`;
+            points.forEach((p2, j) => {
+                const d = Math.hypot(p1.x - p2.x, p1.y - p2.y);
+                if (d < 150) {
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                }
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = `hsl(${p1.hue}, 70%, 50%)`;
+            ctx.beginPath();
+            ctx.arc(p1.x, p1.y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', init);
+    init();
+    draw();
+</script>
+</body>
+</html>
